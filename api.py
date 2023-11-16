@@ -15,9 +15,10 @@ def store_data():
                 return 'Data stored in MongoDB successfully!'
         else:
                 return 'Failed to store data in MongoDB.'
-@app.rout('/get_participants', methods=['GET'])
-def get_Data():
-       result = collection.
+@app.route('/get_participants', methods=['GET'])
+def get_data():
+        result = collection.find()
+        return result
 if __name__ == '__main__':
     app.run(debug=True)
 
