@@ -82,7 +82,7 @@ def secret_santa(ids):
 
     return assignments
 
-def logging.info_secret_santa(collection, assignments):
+def print_secret_santa(collection, assignments):
     for santa, recipient in assignments.items():
         santa_id = ObjectId(santa)
         recipient_id = ObjectId(recipient)
