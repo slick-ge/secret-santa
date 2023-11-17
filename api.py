@@ -7,8 +7,8 @@ import re
 import random
 import smtplib
 from email.message import EmailMessage
-
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 MONGO_HOST = os.environ.get('MONGO_HOST')
 MONGO_PORT = int(os.environ.get('MONGO_PORT'))
@@ -36,32 +36,35 @@ def validate_email(email):
     return bool(re.match(pattern, email))
 
 def insert_user(collection, user_data):
-    if not validate_email(user_data["email"]):
-        print("Invalid email. Not inserting.")
-        return
-    
-    # Check if a user with the same email already exists
-    existing_email = collection.find_one({"email": user_data["email"]})
-    if existing_email:
-        print("User with this email already exists. Not inserting.")
-        return
-    
-    # Check if a user with the same name, surname, and email already exists
-    existing_user = collection.find_one({
-        "Name": user_data["Name"],
-        "Surname": user_data["Surname"],
-        "email": user_data["email"]
-    })
-    
-    if existing_user:
-        print("User with same name, surname, and email already exists. Not inserting.")
-        return
-    
-    result = collection.insert_one(user_data)
-    if result.inserted_id:
-        print('Data stored in MongoDB successfully!')
-    else:
-        print('Failed to store data in MongoDB.')
+    try:
+        if not validate_email(user_data["email"]):
+            logging.info("Invalid email. Not inserting.")
+            return
+
+        # Check for existing user with the same email
+        existing_email = collection.find_one({"email": user_data["email"]})
+        if existing_email:
+            logging.info("User with this email already exists. Not inserting.")
+            return
+
+        # Check for existing user with same details
+        existing_user = collection.find_one({
+            "Name": user_data["Name"],
+            "Surname": user_data["Surname"],
+            "email": user_data["email"]
+        })
+
+        if existing_user:
+            logging.info("User with same name, surname, and email already exists. Not inserting.")
+            return
+
+        result = collection.insert_one(user_data)
+        if result.inserted_id:
+            logging.info('Data stored in MongoDB successfully!')
+        else:
+            logging.info('Failed to store data in MongoDB.')
+    except Exception as e:
+        logging.info(f"Error inserting user data: {e}")
 
 
 def secret_santa(ids):
@@ -79,7 +82,7 @@ def secret_santa(ids):
 
     return assignments
 
-def print_secret_santa(collection, assignments):
+def logging.info_secret_santa(collection, assignments):
     for santa, recipient in assignments.items():
         santa_id = ObjectId(santa)
         recipient_id = ObjectId(recipient)
@@ -88,11 +91,11 @@ def print_secret_santa(collection, assignments):
         recipient_details = collection.find_one({"_id": recipient_id})
 
         if santa_details and recipient_details:
-            print(f"{santa_details['Name']} {santa_details['Surname']} ({santa_details['email']}) "
+            logging.info(f"{santa_details['Name']} {santa_details['Surname']} ({santa_details['email']}) "
                   f"is the Secret Santa for {recipient_details['Name']} {recipient_details['Surname']} "
                   f"({recipient_details['email']})")
         else:
-            print(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
+            logging.info(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
 
 def send_secret_santa(collection, assignments):
     for santa, recipient in assignments.items():
@@ -105,35 +108,39 @@ def send_secret_santa(collection, assignments):
         if santa_details and recipient_details:
             receiver_email = f"{santa_details['email']}"
             email_body = f"Congratulations {santa_details['Name']} {santa_details['Surname']}, you are Secret Santa for {recipient_details['Name']} {recipient_details['Surname']}"
-            print(receiver_email)
-            print(email_body)
+            logging.info(receiver_email)
+            logging.info(email_body)
             send_email(sender_email, receiver_email, email_subject, email_body, smtp_server, smtp_port, smtp_username, smtp_password)
         else:
-            print(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
+            logging.info(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
 
 def send_email(sender_email, receiver_email, subject, body, smtp_server, smtp_port, smtp_username, smtp_password):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-
     try:
+        msg = EmailMessage()
+        msg.set_content(body)
+        msg['Subject'] = subject
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(smtp_username, smtp_password)
             server.send_message(msg)
-        print("Email sent successfully!")
+        logging.info("Email sent successfully!")
     except Exception as e:
-        print("Error sending email:", e)
+        logging.info("Error sending email:", e)
 
 
 app = Flask(__name__)
 
 @app.route('/store_data', methods=['POST'])
 def store_data():
+    try:
         data = request.get_json()
         insert_user(collection, data)
+        return "User data stored successfully!", 200
+    except Exception as e:
+        return f"Error storing user data: {e}", 500
 
 @app.route('/randomize_secret_santa', methods=['GET'])
 def randomize_secret_santa():
