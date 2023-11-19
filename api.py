@@ -8,27 +8,32 @@ import random
 import smtplib
 from email.message import EmailMessage
 import logging
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 
-MONGO_HOST = os.environ.get('MONGO_HOST')
-MONGO_PORT = int(os.environ.get('MONGO_PORT'))
-MONGO_DB = os.environ.get('MONGO_DB')
-MONGO_USER = os.environ.get('MONGO_USER')
-MONGO_PASS = os.environ.get('MONGO_PASS')
-MONGO_COLLECTION = os.environ.get('MONGO_COLLECTION')
+MONGO_HOST = os.getenv('MONGO_HOST')
+MONGO_PORT = int(os.getenv('MONGO_PORT'))
+MONGO_DB = os.getenv('MONGO_DB')
+MONGO_USER = os.getenv('MONGO_USER')
+MONGO_PASS = os.getenv('MONGO_PASS')
+MONGO_COLLECTION = os.getenv('MONGO_COLLECTION')
 
-client = MongoClient(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/")
+client = MongoClient(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}")
 db = client[MONGO_DB]
 collection = db[MONGO_COLLECTION]
 
 
 
-sender_email = os.environ.get('SMTP_SENDER_EMAIL')
-email_subject = os.environ.get('SMTP_SUBJECT')
-smtp_server = os.environ.get('SMTP_URL')  # Replace with your SMTP server
-smtp_port = int(os.environ.get('SMTP_PORT'))  # Replace with your SMTP server's port
-smtp_username = os.environ.get('SMTP_USER')
-smtp_password = os.environ.get('SMTP_PASW')
+SENDER_EMAIL = os.getenv('SMTP_SENDER_EMAIL')
+EMAIL_SUBJECT = os.getenv('SMTP_SUBJECT')
+SMTP_SERVER = os.getenv('SMTP_URL')  # Replace with your SMTP server
+SMTP_PORT = int(os.getenv('SMTP_PORT'))  # Replace with your SMTP server's port
+SMTP_USERNAME = os.getenv('SMTP_USER')
+SMTP_PASSWORD = os.getenv('SMTP_PASW')
 
 
 def validate_email(email):
@@ -39,13 +44,13 @@ def insert_user(collection, user_data):
     try:
         if not validate_email(user_data["email"]):
             logging.info("Invalid email. Not inserting.")
-            return
+            return "Invalid email. Not inserting."
 
         # Check for existing user with the same email
         existing_email = collection.find_one({"email": user_data["email"]})
         if existing_email:
             logging.info("User with this email already exists. Not inserting.")
-            return
+            return "User with this email already exists. Not inserting."
 
         # Check for existing user with same details
         existing_user = collection.find_one({
@@ -56,15 +61,18 @@ def insert_user(collection, user_data):
 
         if existing_user:
             logging.info("User with same name, surname, and email already exists. Not inserting.")
-            return
+            return "User with same name, surname, and email already exists. Not inserting."
 
         result = collection.insert_one(user_data)
         if result.inserted_id:
             logging.info('Data stored in MongoDB successfully!')
+            return "Data stored in MongoDB successfully!"
         else:
             logging.info('Failed to store data in MongoDB.')
+            return "Failed to store data in MongoDB."
     except Exception as e:
         logging.info(f"Error inserting user data: {e}")
+        return f"Error inserting user data: {e}"
 
 
 def secret_santa(ids):
@@ -110,25 +118,27 @@ def send_secret_santa(collection, assignments):
             email_body = f"Congratulations {santa_details['Name']} {santa_details['Surname']}, you are Secret Santa for {recipient_details['Name']} {recipient_details['Surname']}"
             logging.info(receiver_email)
             logging.info(email_body)
-            send_email(sender_email, receiver_email, email_subject, email_body, smtp_server, smtp_port, smtp_username, smtp_password)
+            send_email(SENDER_EMAIL, receiver_email, EMAIL_SUBJECT, email_body, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
         else:
             logging.info(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
 
-def send_email(sender_email, receiver_email, subject, body, smtp_server, smtp_port, smtp_username, smtp_password):
+def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD):
     try:
         msg = EmailMessage()
         msg.set_content(body)
         msg['Subject'] = subject
-        msg['From'] = sender_email
+        msg['From'] = SENDER_EMAIL
         msg['To'] = receiver_email
 
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
-            server.login(smtp_username, smtp_password)
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
         logging.info("Email sent successfully!")
+        return "Email sent successfully!"
     except Exception as e:
-        logging.info("Error sending email:", e)
+        logging.info(f"Error sending email: {e}")
+        return f"Error sending email: {e}"
 
 
 app = Flask(__name__)
@@ -137,8 +147,8 @@ app = Flask(__name__)
 def store_data():
     try:
         data = request.get_json()
-        insert_user(collection, data)
-        return "User data stored successfully!", 200
+        response = insert_user(collection, data)
+        return response , 200
     except Exception as e:
         return f"Error storing user data: {e}", 500
 
