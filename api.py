@@ -158,7 +158,7 @@ def store_data():
     except Exception as e:
         return f"Error storing user data: {e}", 500
 
-@app.route('/secret-santa/randomize_secret_santa', methods=['GET'])
+@app.route('/secret-santa/randomize_secret_santa', methods=['POST'])
 def randomize_secret_santa():
     try:
         data = request.get_json()
