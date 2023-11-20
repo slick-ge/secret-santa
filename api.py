@@ -9,9 +9,9 @@ import smtplib
 from email.message import EmailMessage
 import logging
 
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -131,9 +131,11 @@ def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PO
         msg['To'] = receiver_email
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+#            server.connect()
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
+#            server.close()
         logging.info("Email sent successfully!")
         return "Email sent successfully!"
     except Exception as e:
@@ -147,23 +149,35 @@ app = Flask(__name__)
 def store_data():
     try:
         data = request.get_json()
-        response = insert_user(collection, data)
+        group_name = data.get('group')  # Extract collection name from JSON
+        if not group_name:
+            return "Collection name not provided in the request", 400
+        group = db[group_name]
+        response = insert_user(group, data)
         return response , 200
     except Exception as e:
         return f"Error storing user data: {e}", 500
 
 @app.route('/randomize_secret_santa', methods=['GET'])
 def randomize_secret_santa():
-    cursor = collection.find()
-    documents = list(cursor)
-    json_documents = json.dumps(documents, default=str, indent=1)
-    json_data = json.loads(json_documents)
-    ids = [doc['_id'] for doc in json_data]
-    assignments = secret_santa(ids)
-    send_secret_santa(collection, assignments)
-    
-    return "Secret Santa assignments randomized and emails sent!"
+    try:
+        data = request.get_json()
+        group_name = data.get('group')  # Extract collection name from JSON
+        if not group_name:
+            return "Collection name not provided in the request", 400
+        
+        collection = db[group_name]  # Use the collection name dynamically
+        cursor = collection.find()
+        documents = list(cursor)
+        json_documents = json.dumps(documents, default=str, indent=1)
+        json_data = json.loads(json_documents)
+        ids = [doc['_id'] for doc in json_data]
+        assignments = secret_santa(ids)
+        send_secret_santa(collection, assignments)
+        return "Secret Santa assignments randomized and emails sent!"
+    except Exception as e:
+        return f"Error randomizing Secret Santa: {e}", 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
 
