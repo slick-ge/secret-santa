@@ -145,7 +145,7 @@ def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PO
 
 app = Flask(__name__)
 
-@app.route('/store_data', methods=['POST'])
+@app.route('/secret-santa/store_data', methods=['POST'])
 def store_data():
     try:
         data = request.get_json()
@@ -158,7 +158,7 @@ def store_data():
     except Exception as e:
         return f"Error storing user data: {e}", 500
 
-@app.route('/randomize_secret_santa', methods=['GET'])
+@app.route('/secret-santa/randomize_secret_santa', methods=['GET'])
 def randomize_secret_santa():
     try:
         data = request.get_json()
