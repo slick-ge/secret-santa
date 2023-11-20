@@ -1,2 +1,6 @@
 .env
 .env_bash
+.gitignore
+inserts_users.sh
+command.sh
+rando.py
