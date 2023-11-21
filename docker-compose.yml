@@ -47,4 +47,4 @@ services:
     depends_on:
       - mongo
 volumes:
-  myapp:
+  mongo-data:
