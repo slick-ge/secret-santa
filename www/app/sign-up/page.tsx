@@ -35,7 +35,7 @@ export default function SignUpPage({ searchParams }: SignUpPageProps) {
           <div className="flex flex-col items-center justify-center gap-2">
             <p className="text-red-500">{errors}</p>
             <Link href="/login" className="underline">
-              Sign Up
+              Login
             </Link>
           </div>
         ) : null}
