@@ -3,7 +3,7 @@ import { getAuth } from "./_lib/actions";
 import { redirect } from "next/navigation";
 export default async function Home() {
   const auth = await getAuth();
-  if (!auth) {
+  if (auth) {
     redirect("/dashboard");
   }
   return (

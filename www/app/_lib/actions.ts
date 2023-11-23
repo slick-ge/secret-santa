@@ -13,10 +13,10 @@ export async function getAuth() {
   const parsed = userSchema.safeParse({ email, pass });
   if (parsed.success) {
     const body = JSON.stringify(parsed.data);
-    const res = await fetch("http://localhost:3000/api/auth", {
+    const res = (await fetch("http://localhost:3000/api/auth", {
       method: "post",
       body,
-    }).then((res) => res.json());
+    }).then((res) => res.json())) as { success: boolean };
     return res.success;
   }
   return false;
@@ -30,6 +30,7 @@ export async function getUser() {
       email,
     };
   }
+  return null;
 }
 export async function logOut() {
   const cookieStore = cookies();
