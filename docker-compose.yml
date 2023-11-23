@@ -27,16 +27,17 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     links:
       - mongo
+    restart: unless-stopped
   secret_santa:
     image: ghvinerias/secret-santa
     ports:
       - "5000:5000"
     environment:
-      - MONGO_HOST=${MONGODB_HOST}
-      - MONGO_PORT=${MONGODB_PORT}
-      - MONGO_DB=${MONGODB_DB}
-      - MONGO_USER=${MONGODB_USER}
-      - MONGO_PASS=${MONGODB_PASS}
+      - MONGODB_HOST=${MONGODB_HOST}
+      - MONGODB_PORT=${MONGODB_PORT}
+      - MONGODB_DB=${MONGODB_DB}
+      - MONGODB_USER=${MONGODB_USER}
+      - MONGODB_PASS=${MONGODB_PASS}
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - SENDER_EMAIL=${SENDER_EMAIL}
@@ -47,3 +48,4 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
     depends_on:
       - mongo
+    restart: unless-stopped
