@@ -10,10 +10,6 @@ export async function getAuth() {
   const cookieStore = cookies();
   const email = cookieStore.get("email")?.value;
   const pass = cookieStore.get("pass")?.value;
-  if (!email || !pass) {
-    cookieStore.delete("email");
-    cookieStore.delete("pass");
-  }
   const parsed = userSchema.safeParse({ email, pass });
   if (parsed.success) {
     const body = JSON.stringify(parsed.data);
