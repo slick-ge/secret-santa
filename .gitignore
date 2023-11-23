@@ -1,5 +1,5 @@
 .env
-.env_bash
+env_bash
 .gitignore
 inserts_users.sh
 command.sh

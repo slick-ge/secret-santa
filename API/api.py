@@ -15,18 +15,17 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-MONGO_HOST = os.getenv('MONGO_HOST')
-MONGO_PORT = int(os.getenv('MONGO_PORT'))
-MONGO_DB = os.getenv('MONGO_DB')
-MONGO_USER = os.getenv('MONGO_USER')
-MONGO_PASS = os.getenv('MONGO_PASS')
-MONGO_COLLECTION = os.getenv('MONGO_COLLECTION')
+MONGO_HOST = os.getenv('MONGODB_HOST')
+MONGO_PORT = int(os.getenv('MONGODB_PORT'))
+MONGO_DB = os.getenv('MONGODB_DB')
+MONGO_USER = os.getenv('MONGODB_USER')
+MONGO_PASS = os.getenv('MONGODB_PASS')
 
 client = MongoClient(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}")
 db = client[MONGO_DB]
-collection = db[MONGO_COLLECTION]
 
 
+#print(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}")
 
 SENDER_EMAIL = os.getenv('SMTP_SENDER_EMAIL')
 EMAIL_SUBJECT = os.getenv('SMTP_SUBJECT')
