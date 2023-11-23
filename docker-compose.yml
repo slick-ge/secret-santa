@@ -16,7 +16,7 @@ services:
   mongo-express:
     image: mongo-express
     ports:
-      - 8099:8081
+      - 8081:8081
     depends_on:
       - mongo
     environment:
@@ -27,7 +27,7 @@ services:
       - mongo
     restart: unless-stopped
   secret_santa:
-    image: ghvinerias/secret-santa
+    image: ghvinerias/secret-santa-api
     ports:
       - "5000:5000"
     environment:

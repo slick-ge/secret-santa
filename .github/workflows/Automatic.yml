@@ -5,11 +5,11 @@ on:
     branches:
       - main
 jobs:
-  build-and-publish-automatic:
-    name: Build and Publish Docker Image (Automatic)
+  build-and-publish-automatic-api:
+    name: Build and Publish API Image (Automatic)
     if: |
       github.event_name == 'push' &&
-      contains(github.event.head_commit.message, 'Version')
+      contains(github.event.head_commit.message, 'API Version')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,7 +26,32 @@ jobs:
         run: echo ${{ secrets.DOCKERUHUB_SECRET }} | docker login -u ghvinerias --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t ghvinerias/secret-santa:$VERSION_TAG -t ghvinerias/secret-santa:latest .
+        run: docker build -f ./API/Dockerfile -t ghvinerias/secret-santa-api:$VERSION_TAG -t ghvinerias/secret-santa-api:latest ./API/
 
       - name: Publish Docker Image to GitHub Container Registry
-        run: docker push -a ghvinerias/secret-santa
+        run: docker push -a ghvinerias/secret-santa-api
+  build-and-publish-automatic-front:
+    name: Build and Publish Front Image (Automatic)
+    if: |
+      github.event_name == 'push' &&
+      contains(github.event.head_commit.message, 'Front Version')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get Version Tag
+        run: | 
+          VERSION_TAG=$(echo ${{ github.event.head_commit.message }} | grep -oP '(?i)version\s*:?\s*\K\d+(\.\d+)+')
+          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV 
+      - name: Get Tag
+        run: echo $VERSION_TAG
+
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.DOCKERUHUB_SECRET }} | docker login -u ghvinerias --password-stdin
+
+      - name: Build Docker Image
+        run: docker build -f ./www/Dockerfile -t ghvinerias/secret-santa-front:$VERSION_TAG -t ghvinerias/secret-santa-front:latest ./www/
+
+      - name: Publish Docker Image to GitHub Container Registry
+        run: docker push -a ghvinerias/secret-santa-front
