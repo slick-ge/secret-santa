@@ -61,10 +61,11 @@ def insert_user(collection, user_data):
         if existing_user:
             logging.info("User with same name, surname, and email already exists. Not inserting.")
             return "User with same name, surname, and email already exists. Not inserting."
-
+        user_data.pop('group')
         result = collection.insert_one(user_data)
         if result.inserted_id:
             logging.info('Data stored in MongoDB successfully!')
+            update_pipeline(collection.database, collection.name)  
             return "Data stored in MongoDB successfully!"
         else:
             logging.info('Failed to store data in MongoDB.')
@@ -72,7 +73,19 @@ def insert_user(collection, user_data):
     except Exception as e:
         logging.info(f"Error inserting user data: {e}")
         return f"Error inserting user data: {e}"
-
+        
+        
+def update_pipeline(database, collection_name):
+    try:
+        pipeline_collection = database["rooms"]
+        existing_collection = pipeline_collection.find_one({"collection_name": collection_name})
+        if not existing_collection:
+            pipeline_collection.insert_one({"collection_name": collection_name})
+            logging.info(f"Pipeline updated with collection: {collection_name}")
+        else:
+            logging.info(f"Collection '{collection_name}' already exists in 'rooms'. Skipping update.")
+    except Exception as e:
+        logging.info(f"Error updating pipeline: {e}")
 
 def secret_santa(ids):
     shuffled_ids = list(ids)

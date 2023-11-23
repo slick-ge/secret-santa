@@ -40,5 +40,11 @@ mongosh -- mongodb://"$MONGO_INITDB_ROOT_USERNAME":"$MONGO_INITDB_ROOT_PASSWORD"
 	db.eqvsi.insertOne({"Name":"Endelika","Surname":"Mtsariashvili","email":"Endelika@slick.ge"})
 	db.eqvsi.insertOne({"Name":"Lana","Surname":"Janezashvili","email":"Lana@slick.ge"})
 	db.eqvsi.insertOne({"Name":"Natali","Surname":"Jeiranashvili","email":"Natali@slick.ge"})
+	db.rooms.insertOne({"collection_name":"erti"})
+	db.rooms.insertOne({"collection_name":"ori"})
+	db.rooms.insertOne({"collection_name":"sami"})
+	db.rooms.insertOne({"collection_name":"otxi"})
+	db.rooms.insertOne({"collection_name":"xuti"})
+	db.rooms.insertOne({"collection_name":"eqvsi"})
 
 EOF
