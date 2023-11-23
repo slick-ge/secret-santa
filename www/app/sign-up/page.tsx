@@ -30,7 +30,7 @@ export default function SignUpPage({ searchParams }: SignUpPageProps) {
             type="password"
           />
         </div>
-        <button className="px-4 py-2 border border-white">submit</button>
+        <button className="px-4 py-2 border border-white">Sign Up</button>
         {errors?.length ? (
           <div className="flex flex-col items-center justify-center gap-2">
             <p className="text-red-500">{errors}</p>
