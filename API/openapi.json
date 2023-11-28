@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Swagger Secret Santa - OpenAPI 3.0
+  description: >-
+    This is a very simple secret santa API written in python, I KNOW it cloud
+    have been written in some other language and more optimized, but who cares,
+    it's my first project to yay :)  Data is stored in a mongo db. 
+
+    Some useful links:
+
+    - [Github Repo For This Project](https://github.com/Ghvinerias/secret-santa)
+
+    - [My Personal Github Page](https://github.com/Ghvinerias)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: support@slick.ge
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:5000
+paths:
+  /secret_santa/store_data:
+    post:
+      summary: Add a new participant
+      description: Add a new participant
+      operationId: addPet
+      requestBody:
+        description: Create a new participant
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/store_data'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/store_data'
+              examples:
+                Success:
+                  value: |-
+                    {
+                      Group: 'Test',
+                      Name: 'Natali',
+                      Surname: 'Jeiranashvili',
+                      Email: 'misho@example.com',
+                    }
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/store_data'
+  /secret_santa/randomize_secret_santa:
+    post:
+      summary: Randomize Secret Santa
+      description: Randomize Secret Santa
+      requestBody:
+        description: Randomize Secret Santa
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/randomize_secret_santa'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/randomize_secret_santa'
+              examples:
+                Success:
+                  value: |-
+                    {
+                      Group: 'Test',
+                      Name: 'name',
+                      Surname: 'surname',
+                      Email: 'example@example.com',
+                    }
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/randomize_secret_santa'
+components:
+  schemas:
+    store_data:
+      type: object
+      properties:
+        Group:
+          type: string
+          example: New-York-Continental
+        Name:
+          type: string
+          example: John
+        Surname:
+          type: string
+          example: Wick
+        Email:
+          type: string
+          example: John.Wick@pencil.com
+    randomize_secret_santa:
+      type: object
+      properties:
+        Group:
+          type: string
+          example: New-York-Continental
