@@ -34,6 +34,14 @@ SMTP_PORT = int(os.getenv('SMTP_PORT'))  # Replace with your SMTP server's port
 SMTP_USERNAME = os.getenv('SMTP_USER')
 SMTP_PASSWORD = os.getenv('SMTP_PASW')
 
+def db_healthcheck():
+    try:
+        db_ping = db.command('ping')
+        if db_ping:
+            return "Healthy"
+    except ConnectionFailure:
+        logging.info("Could Not Connect To DB")
+        return "Unhealthy"
 
 def validate_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -156,6 +164,17 @@ def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PO
 
 
 app = Flask(__name__)
+
+@app.route('/secret-santa/health', methods=['GET'])
+def health():
+    try:
+        status = db_healthcheck()
+        if not status:
+            return "Unhealthy", 400
+        return "Healthy", 200
+    except Exception as e:
+        return f"Error checking database health: {e}", 500
+
 
 @app.route('/secret-santa/store_data', methods=['POST'])
 def store_data():
