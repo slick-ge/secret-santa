@@ -1,3 +1,4 @@
+import logging
 import random
 import os
 import json
@@ -9,7 +10,6 @@ import os
 import re
 from pymongo import MongoClient
 
-import logging
 
 SENDER_EMAIL = os.getenv('SMTP_SENDER_EMAIL')
 EMAIL_SUBJECT = os.getenv('SMTP_SUBJECT')
@@ -27,7 +27,7 @@ client = MongoClient(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_P
 db = client[MONGO_DB]
 
 
-print(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}")
+#print(f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}")
 
 def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD):
     try:
@@ -48,23 +48,21 @@ def send_email(SENDER_EMAIL, receiver_email, subject, body, SMTP_SERVER, SMTP_PO
     except Exception as e:
         logging.info(f"Error sending email: {e}")
         return f"Error sending email: {e}"
-    
+
+def get_participant_details(collection, participant_id):
+    participant_details = collection.find_one({"_id": ObjectId(participant_id)})
+    if not participant_details:
+        raise ValueError(f"Participant details not found for ID: {participant_id}")
+    return participant_details  
+
 def send_secret_santa(collection, assignments):
     for santa, recipient in assignments.items():
-        santa_id = ObjectId(santa)
-        recipient_id = ObjectId(recipient)
+        santa_details = get_participant_details(collection, santa)
+        recipient_details = get_participant_details(collection, recipient)
 
-        santa_details = collection.find_one({"_id": santa_id})
-        recipient_details = collection.find_one({"_id": recipient_id})
-
-        if santa_details and recipient_details:
-            receiver_email = f"{santa_details['email']}"
-            email_body = f"Congratulations {santa_details['Name']} {santa_details['Surname']}, you are Secret Santa for {recipient_details['Name']} {recipient_details['Surname']}"
-            logging.info(receiver_email)
-            logging.info(email_body)
-            send_email(SENDER_EMAIL, receiver_email, EMAIL_SUBJECT, email_body, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
-        else:
-            logging.info(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
+        receiver_email = f"{santa_details['email']}"
+        email_body = f"Congratulations {santa_details['Name']} {santa_details['Surname']}, you are Secret Santa for {recipient_details['Name']} {recipient_details['Surname']}"
+        send_email(SENDER_EMAIL, receiver_email, EMAIL_SUBJECT, email_body, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
 
 def secret_santa(ids):
     shuffled_ids = list(ids)
@@ -83,26 +81,18 @@ def print_secret_santa(collection, assignments):
     secret_santa_data = []
 
     for santa, recipient in assignments.items():
-        santa_id = ObjectId(santa)
-        recipient_id = ObjectId(recipient)
+        santa_details = get_participant_details(collection, santa)
+        recipient_details = get_participant_details(collection, recipient)
 
-        santa_details = collection.find_one({"_id": santa_id})
-        recipient_details = collection.find_one({"_id": recipient_id})
+        santa_info = {
+            "santa_name": f"{santa_details['Name']} {santa_details['Surname']}",
+            "santa_email": santa_details['email'],
+            "recipient_name": f"{recipient_details['Name']} {recipient_details['Surname']}",
+            "recipient_email": recipient_details['email']
+        }
+        secret_santa_data.append(santa_info)
 
-        if santa_details and recipient_details:
-            santa_info = {
-                "santa_name": f"{santa_details['Name']} {santa_details['Surname']}",
-                "santa_email": santa_details['email'],
-                "recipient_name": f"{recipient_details['Name']} {recipient_details['Surname']}",
-                "recipient_email": recipient_details['email']
-            }
-            secret_santa_data.append(santa_info)
-        else:
-            # Handle cases where participant details are not found
-            logging.info(f"Participant details not found for Santa ID: {santa}, Recipient ID: {recipient}")
-
-#    logging.info(secret_santa_data)
-    return json.dumps(secret_santa_data)
+    return secret_santa_data
 
 
 
@@ -158,6 +148,33 @@ def insert_user(collection, user_data):
         logging.info(f"Error inserting user data: {e}")
         return f"Error inserting user data: {e}"
         
+
+def get_rooms_with_object_ids(object_id=None):
+    try:
+        rooms_collection = db["rooms"]
+
+        if object_id:
+            room = rooms_collection.find_one({"_id": ObjectId(object_id)})
+            if room:
+                return {"room": room["collection_name"]}
+            else:
+                logging.info(f"No room found with ObjectId: {object_id}")
+                return None
+        else:
+            rooms = rooms_collection.find({}, {"_id": 1, "collection_name": 1})
+            rooms_data = []
+            for room in rooms:
+                room_data = {
+                    "room_id": str(room["_id"]),
+                    "room": room["collection_name"]
+                }
+                rooms_data.append(room_data)
+            return rooms_data
+    except Exception as e:
+        logging.info(f"Error retrieving rooms with ObjectIDs: {e}")
+        return None
+
+
         
 def update_pipeline(database, collection_name):
     try:

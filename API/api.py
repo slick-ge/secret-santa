@@ -15,10 +15,10 @@ def health():
     try:
         status = secret_santa.db_healthcheck()
         if not status:
-            return "Unhealthy", 400
-        return "Healthy", 200
+            return jsonify({"status": "error", "message": "Unhealthy"}), 400
+        return jsonify({"status": "success", "message": "Healthy"}), 200
     except Exception as e:
-        return f"Error checking database health: {e}", 500
+        return jsonify({"status": "error", "message": f"Error checking database health: {str(e)}"}), 500
 
 
 @app.route('/secret-santa/store_data', methods=['POST'])
@@ -27,45 +27,48 @@ def store_data():
         data = request.get_json()
         group_name = data.get('group')  # Extract collection name from JSON
         if not group_name:
-            return "Collection name not provided in the request", 400
+            return jsonify({"status": "error", "message": "Collection name not provided in the request"}), 400
         group = secret_santa.db[group_name]
         response = secret_santa.insert_user(group, data)
-        return response , 200
+        return jsonify({"status": "success", "message": response}), 200
     except Exception as e:
-        return f"Error storing user data: {e}", 500
+        return jsonify({"status": "error", "message": f"Error storing user data: {str(e)}"}), 500
+
 
 @app.route('/secret-santa/randomize_secret_santa', methods=['POST'])
 def randomize_secret_santa():
-
     try:
         data = request.get_json()
         group_name = data.get('group')  # Extract collection name from JSON
         if not group_name:
-            return "Collection name not provided in the request", 400
+            return jsonify({"status": "error", "message": "Collection name not provided in the request"}), 400
         
-        if APP_ENV == "Test":
-            print("Testing Mode")
-            collection = secret_santa.db[group_name]  # Use the collection name dynamically
-            cursor = collection.find()
-            documents = list(cursor)
-            json_documents = json.dumps(documents, default=str, indent=1)
-            json_data = json.loads(json_documents)
-            ids = [doc['_id'] for doc in json_data]
-            assignments = secret_santa.secret_santa(ids)
-            secret_santa_json = secret_santa.print_secret_santa(collection, assignments)
-            return secret_santa_json, 200
         collection = secret_santa.db[group_name]  # Use the collection name dynamically
         cursor = collection.find()
         documents = list(cursor)
-        json_documents = json.dumps(documents, default=str, indent=1)
-        json_data = json.loads(json_documents)
-        ids = [doc['_id'] for doc in json_data]
+        ids = [doc['_id'] for doc in documents]
         assignments = secret_santa.secret_santa(ids)
+        
+        if APP_ENV == "Test":
+            print("Testing Mode")
+            secret_santa_json = secret_santa.print_secret_santa(collection, assignments)
+            return jsonify({"status": "success", "data": secret_santa_json}), 200
+        
         secret_santa.send_secret_santa(collection, assignments)
-        return "Secret Santa assignments randomized and emails sent!"
+        return jsonify({"status": "success", "message": "Secret Santa assignments randomized and emails sent!"}), 200
     except Exception as e:
-        return f"Error randomizing Secret Santa: {e}", 500
+        return jsonify({"status": "error", "message": f"Error randomizing Secret Santa: {str(e)}"}), 500
+
+
+@app.route('/secret-santa/get-rooms', methods=['POST'])
+def get_rooms():
+    try:
+        data = request.get_json()
+        object_id = data.get('object_id') if data else None  # Get the optional ObjectId parameter from the request
+        rooms = secret_santa.get_rooms_with_object_ids(object_id=object_id)
+        return jsonify({"status": "success", "data": rooms}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error getting rooms: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
-
