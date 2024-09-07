@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"secret-santa/models"
 	"secret-santa/routes"
-	"github.com/gorilla/mux"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 func main() {

@@ -16,6 +16,6 @@ func RegisterRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/groups", controllers.PutGroup(db)).Methods("PUT")
 
 	// Assignment Routes
-	router.HandleFunc("/assignments", controllers.GetAssignments(db)).Methods("GET")
+    router.HandleFunc("/assignments/{group_id}", controllers.GetAssignmentsByGroup(db)).Methods("GET")  // Update for group-specific assignments
 	router.HandleFunc("/assignments", controllers.PostAssignment(db)).Methods("POST")
 }
