@@ -8,7 +8,7 @@ import (
 
 func RegisterRoutes(router *mux.Router, db *gorm.DB) {
 	//HealthCHeck
-	//router.HandleFunc("/healthcheck", controllers.HealthCHeck(db)).Methods("GET")
+	router.HandleFunc("/healthcheck", controllers.HealthCHeck(db)).Methods("GET")
 	// User Routes
 	router.HandleFunc("/users", controllers.GetUsers(db)).Methods("GET")
 	router.HandleFunc("/users", controllers.PutUser(db)).Methods("PUT")
