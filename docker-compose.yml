@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend  # Build context, the folder where your Dockerfile is located
+      dockerfile: Dockerfile  # Name of the Dockerfile inside the backend folder
+    container_name: secret-santa-app
+    working_dir: /app
+    volumes:
+      - ./backend:/app  # Mount the backend folder into the container
+    ports:
+      - "8080:8080"  # Map the container port to the host port
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=secret
+      - DB_NAME=secret_santa_db
+  db:
+    image: postgres:15-alpine  # Use PostgreSQL as the database
+    container_name: secret-santa-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: secret_santa_db
+    ports:
+      - "5432:5432"  # Expose the database port
+#uncomment theese 4 lines to make db data persistant
+    # volumes:
+      # - db_data:/var/lib/postgresql/data  # Persist database data
+# volumes:
+  # db_data:
