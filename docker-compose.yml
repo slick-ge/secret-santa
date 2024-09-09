@@ -10,7 +10,7 @@ services:
     volumes:
       - ./backend:/app  # Mount the backend folder into the container
     ports:
-      - "8080:8080"  # Map the container port to the host port
+      - "8080:8089"  # Map the container port to the host port
     depends_on:
       - db
     environment:
