@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"secret-santa/models"
-	"secret-santa/routes"
+	"secret-santa/backend/models"
+	"secret-santa/backend/routes"
 )
 
 func main() {

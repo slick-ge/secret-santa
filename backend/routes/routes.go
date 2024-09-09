@@ -1,12 +1,14 @@
 package routes
 
 import (
-	"secret-santa/controllers"
+	"secret-santa/backend/controllers"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
 func RegisterRoutes(router *mux.Router, db *gorm.DB) {
+	//HealthCHeck
+	router.HandleFunc("/healthcheck", controllers.HealthCHeck(db)).Methods("GET")
 	// User Routes
 	router.HandleFunc("/users", controllers.GetUsers(db)).Methods("GET")
 	router.HandleFunc("/users", controllers.PutUser(db)).Methods("PUT")

@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"secret-santa/models"
+	"secret-santa/backend/models"
     "github.com/gorilla/mux"
 	"gorm.io/gorm"
 )

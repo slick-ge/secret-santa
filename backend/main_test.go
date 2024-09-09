@@ -9,8 +9,8 @@ import (
     "github.com/gorilla/mux"
     "gorm.io/driver/sqlite"
     "gorm.io/gorm"
-    "secret-santa/models"      // Replace with your actual module path
-    "secret-santa/routes"      // Replace with your actual module path
+    "secret-santa/backend/models"      // Replace with your actual module path
+    "secret-santa/backend/routes"      // Replace with your actual module path
 )
 
 func setupTestDB() (*gorm.DB, func()) {
