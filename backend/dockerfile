@@ -18,7 +18,7 @@ WORKDIR /
 
 COPY --from=build-stage /secret-santa /secret-santa
 
-EXPOSE 8080
+#EXPOSE 8080
 
 #USER nonroot:nonroot
 
