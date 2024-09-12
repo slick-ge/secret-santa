@@ -1,0 +1,41 @@
+services:
+  backend:
+    image: golang:1.23 
+    container_name: api
+    working_dir: /app
+    volumes:
+      - ./backend:/app  # Mount the backend folder into the container
+    ports:
+      - "8080:8080"  # Map the container port to the host port
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=secret
+      - DB_NAME=secret_santa_db
+    command: sh -c "go run main.go" # Start Go API
+
+  db:
+    image: postgres:15-alpine  # Use PostgreSQL as the database
+    container_name: secret-santa-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: secret_santa_db
+    ports:
+      - "5432:5432"  # Expose the database port
+  front:
+    image: node:hydrogen-alpine3.20
+    working_dir: /app
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm run dev" # Install pnpm, dependencies, and run the app
+    container_name: front
+    volumes:
+      - ./frontend:/app
+      - /app/.pnpm-store # Ensure node_modules is not mounted from the host
+      - /app/.next # Ensure node_modules is not mounted from the host
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=backend:5432
