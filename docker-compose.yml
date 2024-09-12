@@ -28,8 +28,3 @@ services:
       POSTGRES_DB: secret_santa_db
     ports:
       - "5432:5432"  # Expose the database port
-#uncomment theese 4 lines to make db data persistant
-    # volumes:
-      # - db_data:/var/lib/postgresql/data  # Persist database data
-# volumes:
-  # db_data:
