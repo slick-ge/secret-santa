@@ -1,30 +1,46 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: ./backend  # Build context, the folder where your Dockerfile is located
-      dockerfile: Dockerfile  # Name of the Dockerfile inside the backend folder
-    container_name: secret-santa-app
-    working_dir: /app
+  backend:
+    image: golang:1.23 # Use the latest Go image
     volumes:
-      - ./backend:/app  # Mount the backend folder into the container
+      - ./backend:/go/src/app # Mount your current directory to /go/src/app in the container
+    working_dir: /go/src/app
+    command: bash -c "go mod tidy && go run main.go" # Adjust this to match your Go entry point
     ports:
-      - "8080:8089"  # Map the container port to the host port
+      - "8080:8080" # Expose the app's port
+    environment:
+      - GO_ENV=development
+      - DB_HOST=postgres # Hostname of the Postgres container
+      - DB_USER=myuser   # Matches the Postgres user set below
+      - DB_PASSWORD=mypassword # Matches the Postgres password set below
+      - DB_NAME=mydb     # Matches the Postgres database name set below
+      - DB_PORT=5432     # Matches the Postgres port set below
     depends_on:
-      - db
+      - postgres # Ensure Postgres starts before the app
+
+  postgres:
+    image: postgres:15-alpine # Using the official PostgreSQL image
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=secret
-      - DB_NAME=secret_santa_db
-  db:
-    image: postgres:15-alpine  # Use PostgreSQL as the database
-    container_name: secret-santa-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: secret_santa_db
+      POSTGRES_DB: mydb         # Set the primary database name
+      POSTGRES_USER: myuser     # Set the username
+      POSTGRES_PASSWORD: mypassword # Set the password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist Postgres data
+
+  front:
+    image: node:hydrogen-alpine3.20
+    working_dir: /app
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm run dev" # Install pnpm, dependencies, and run the app
+    container_name: front
+    volumes:
+      - ./frontend:/app
+      - /app/.pnpm-store # Ensure node_modules is not mounted from the host
+      - /app/.next # Ensure node_modules is not mounted from the host
     ports:
-      - "5432:5432"  # Expose the database port
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=backend:8080
+
+volumes:
+  postgres_data:
